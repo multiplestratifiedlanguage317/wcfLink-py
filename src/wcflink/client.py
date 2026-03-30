@@ -9,9 +9,10 @@ from .models import Account, Event, LoginSession, Settings, VersionInfo
 
 
 class WcfLinkClient:
-    def __init__(self, base_url: str = "http://127.0.0.1:17890", timeout: float = 30.0) -> None:
+    def __init__(self, base_url: str = "http://127.0.0.1:17890", timeout: float = 30.0, api_key: str = "") -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
+        self.api_key = api_key
 
     def version(self) -> VersionInfo:
         return VersionInfo.from_dict(self._request_json("GET", "/api/version"))
@@ -106,7 +107,9 @@ class WcfLinkClient:
 
     def _request_bytes(self, method: str, path: str, payload: dict[str, Any] | None = None) -> bytes:
         data: bytes | None = None
-        headers = {}
+        headers: dict[str, str] = {}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
         if payload is not None:
             data = json.dumps(payload).encode("utf-8")
             headers["Content-Type"] = "application/json"

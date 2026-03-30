@@ -27,6 +27,7 @@ class Config:
     log_level: str
     open_browser: bool
     webhook_url: str
+    api_key: str
 
     def with_overrides(self, **overrides: object) -> "Config":
         normalized = {key: value for key, value in overrides.items() if value is not None}
@@ -73,6 +74,7 @@ def load() -> Config:
         log_level=os.getenv("WCFLINK_LOG_LEVEL", "INFO"),
         open_browser=_env_bool("WCFLINK_OPEN_BROWSER", False),
         webhook_url=os.getenv("WCFLINK_WEBHOOK_URL", file_settings.get("webhook_url", "")),
+        api_key=os.getenv("WCFLINK_API_KEY", ""),
     )
 
 
