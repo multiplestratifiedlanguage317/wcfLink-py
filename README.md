@@ -1,5 +1,7 @@
 # wcflink
 
+[![PyPi](https://img.shields.io/pypi/v/wcflink.svg)](https://pypi.org/project/wcflink)
+
 `wcflink` 是参考 [lich0821/wcfLink](https://github.com/lich0821/wcfLink) 实现的 Python 版本地运行时。
 
 它直接对接 iLink 通道，负责扫码登录、账号持久化、长轮询收消息、本地事件存储、媒体收发，以及对外提供本地 HTTP API 和 Python SDK。
