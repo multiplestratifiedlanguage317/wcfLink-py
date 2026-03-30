@@ -53,10 +53,14 @@ wcflink serve
 ```
 
 也可以覆盖配置：
+监听地址:listen-addr
+认证密钥:api-key
+注意：默认监听地址127.0.0.1，如果希望监听全部使用0.0.0.0，密钥全部接口都需要，添加请求头Authorization，如下配置接口的值应当为Bearer soUY6VaaS286oiiEfr6sQJK4v3q3K020zdwC5ZIDAr8
 
 ```bash
 wcflink serve \
   --listen-addr 127.0.0.1:28080 \
+  --api-key soUY6VaaS286oiiEfr6sQJK4v3q3K020zdwC5ZIDAr8 \
   --state-dir ./runtime-data \
   --upstream-base-url https://ilinkai.weixin.qq.com
 ```

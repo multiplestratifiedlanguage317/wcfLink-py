@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import secrets
 from dataclasses import is_dataclass
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -40,6 +41,9 @@ def _make_handler(service: Service, logger: logging.Logger):
             path, _, query_string = self.path.partition("?")
             query = parse.parse_qs(query_string)
             try:
+                if not self._is_authorized(path):
+                    self._write_unauthorized()
+                    return
                 if path == "/health/live" or path == "/health/ready":
                     self._write_json(200, {"ok": True, "timestamp": datetime.utcnow().isoformat() + "Z", "version": current()})
                     return
@@ -91,6 +95,9 @@ def _make_handler(service: Service, logger: logging.Logger):
         def do_POST(self) -> None:
             path = self.path.split("?", 1)[0]
             try:
+                if not self._is_authorized(path):
+                    self._write_unauthorized()
+                    return
                 payload = self._read_json()
                 if path == "/api/accounts/login/start":
                     self._write_json(200, service.start_login(str(payload.get("base_url") or "")))
@@ -133,6 +140,29 @@ def _make_handler(service: Service, logger: logging.Logger):
 
         def log_message(self, format: str, *args: object) -> None:
             logger.debug("%s - %s", self.address_string(), format % args)
+
+        @staticmethod
+        def _is_auth_exempt(path: str) -> bool:
+            return False
+
+        def _is_authorized(self, path: str) -> bool:
+            expected = service.cfg.api_key.strip()
+            if not expected or self._is_auth_exempt(path):
+                return True
+            auth = self.headers.get("Authorization", "")
+            scheme, _, token = auth.partition(" ")
+            if scheme.lower() != "bearer" or not token:
+                return False
+            return secrets.compare_digest(token.strip(), expected)
+
+        def _write_unauthorized(self) -> None:
+            raw = json.dumps({"error": "unauthorized"}, ensure_ascii=False).encode("utf-8")
+            self.send_response(401)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("WWW-Authenticate", "Bearer")
+            self.send_header("Content-Length", str(len(raw)))
+            self.end_headers()
+            self.wfile.write(raw)
 
         def _read_json(self) -> dict[str, Any]:
             content_length = int(self.headers.get("Content-Length", "0") or "0")

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import secrets
 import sys
 from pathlib import Path
 
@@ -15,6 +16,7 @@ from .exceptions import WcfLinkAPIError
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="wcflink", description="Python implementation of wcfLink")
     parser.add_argument("--base-url", default="http://127.0.0.1:17890", help="wcfLink service base URL")
+    parser.add_argument("--api-key", default="", help="API key for Bearer authentication")
 
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -29,6 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--poll-timeout", type=float, default=None)
     serve.add_argument("--webhook-url", default=None)
     serve.add_argument("--log-level", default=None)
+    serve.add_argument("--api-key", default=None, help="API key for Bearer authentication (random if omitted)")
 
     sub.add_parser("version")
     sub.add_parser("api-version")
@@ -84,22 +87,22 @@ def main() -> int:
             case "version":
                 print_json(current_version().to_dict())
             case "api-version":
-                client = WcfLinkClient(args.base_url)
+                client = WcfLinkClient(args.base_url, api_key=args.api_key)
                 print_json(client.version().to_dict())
             case "accounts":
-                client = WcfLinkClient(args.base_url)
+                client = WcfLinkClient(args.base_url, api_key=args.api_key)
                 print_json([item.to_dict() for item in client.list_accounts()])
             case "events":
-                client = WcfLinkClient(args.base_url)
+                client = WcfLinkClient(args.base_url, api_key=args.api_key)
                 print_json([item.to_dict() for item in client.list_events(args.after_id, args.limit)])
             case "logs":
-                client = WcfLinkClient(args.base_url)
+                client = WcfLinkClient(args.base_url, api_key=args.api_key)
                 print_json(client.list_logs(args.after_id, args.limit))
             case "login":
-                client = WcfLinkClient(args.base_url)
+                client = WcfLinkClient(args.base_url, api_key=args.api_key)
                 return handle_login(args, client)
             case "send-text":
-                client = WcfLinkClient(args.base_url)
+                client = WcfLinkClient(args.base_url, api_key=args.api_key)
                 print_json(
                     client.send_text(
                         account_id=args.account_id,
@@ -109,7 +112,7 @@ def main() -> int:
                     )
                 )
             case "send-media":
-                client = WcfLinkClient(args.base_url)
+                client = WcfLinkClient(args.base_url, api_key=args.api_key)
                 print_json(
                     client.send_media(
                         account_id=args.account_id,
@@ -160,6 +163,7 @@ def run_server(args: argparse.Namespace) -> int:
         poll_timeout=args.poll_timeout,
         webhook_url=args.webhook_url,
         log_level=args.log_level,
+        api_key=args.api_key,
     )
     if args.state_dir is not None:
         if args.media_dir is None:
@@ -173,6 +177,13 @@ def run_server(args: argparse.Namespace) -> int:
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
     logger = logging.getLogger("wcflink")
+
+    if not cfg.api_key.strip():
+        cfg = cfg.with_overrides(api_key=secrets.token_urlsafe(32))
+        logger.info("generated random API key:Bearer %s", cfg.api_key)
+    else:
+        logger.info("using configured API key:Bearer %s", cfg.api_key)
+
     logger.info("starting wcflink on %s", cfg.listen_addr)
     logger.info("version %s", current_version().version)
     engine = Engine(cfg=cfg, logger=logger)
